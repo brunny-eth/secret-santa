@@ -51,18 +51,18 @@ export default function SecretSantaApp() {
           const { Wheel } = await import('spin-wheel');
           if (wheelContainerRef.current && !wheelRef.current) {
             const props = {
-              items: Object.keys(USERS).map((name, index) => ({
-                label: name,
-                weight: 1,
-                backgroundColor: COLORS[index % COLORS.length]
-              })),
-              itemLabelRadiusMax: 0.7,
-              itemLabelFontSize: '35px',
-              rotationResistance: -50,
-              itemLabelAlign: 'center',
-              itemLabelColors: ['#000000'],
-              radius: 0.85,
-            };
+                items: Object.keys(USERS).map((name, index) => ({
+                  label: name,
+                  weight: 1,
+                  backgroundColor: COLORS[index % COLORS.length]
+                })),
+                itemLabelRadiusMax: 0.7,
+                itemLabelFontSize: '16px',
+                rotationResistance: -50,
+                itemLabelAlign: 'center',
+                itemLabelColors: ['#000000'],
+                radius: 0.85,
+              };
 
             wheelRef.current = new Wheel(wheelContainerRef.current, props);
           }
@@ -221,8 +221,8 @@ export default function SecretSantaApp() {
       
       <div style={{ 
         position: 'relative', 
-        width: '400px',
-        height: '420px'
+        width: '600px',  // Increased from 400px
+        height: '620px'  // Increased from 420px
       }}>
         <div style={{
           position: 'absolute',
@@ -238,8 +238,8 @@ export default function SecretSantaApp() {
         <div 
           ref={wheelContainerRef} 
           style={{ 
-            width: '400px', 
-            height: '400px',
+            width: '600px',  // Increased from 400px
+            height: '600px', // Increased from 400px
             position: 'absolute',
             top: '20px'
           }}
