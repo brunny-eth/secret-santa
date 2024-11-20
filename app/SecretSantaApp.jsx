@@ -24,7 +24,7 @@ const MATCHES = {
 
 const USER_DEMOGRAPHICS = {
   'Rocco': {
-    interests: ['gaming', 'sports', 'tech'],
+    interests: ['gaming', 'boats', 'tech'],
     giftPreferences: 'modern gadgets and gaming accessories'
   },
   'Victoria': {
