@@ -22,15 +22,96 @@ const MATCHES = {
   'Steven': 'Rocco'
 };
 
+const USER_DEMOGRAPHICS = {
+  'Rocco': {
+    interests: ['gaming', 'sports', 'tech'],
+    giftPreferences: 'modern gadgets and gaming accessories'
+  },
+  'Victoria': {
+    interests: ['reading', 'cooking', 'travel'],
+    giftPreferences: 'books and kitchen gadgets'
+  },
+  'Hannah': {
+    interests: ['fitness', 'music', 'art'],
+    giftPreferences: 'creative supplies and workout gear'
+  },
+  'Bruno': {
+    interests: ['outdoors', 'photography', 'coffee'],
+    giftPreferences: 'adventure gear and coffee accessories'
+  },
+  'Marcela': {
+    interests: ['gardening', 'yoga', 'crafts'],
+    giftPreferences: 'plants and craft supplies'
+  },
+  'Miguel': {
+    interests: ['cooking', 'movies', 'tech'],
+    giftPreferences: 'kitchen gadgets and entertainment'
+  },
+  'Steven': {
+    interests: ['DIY', 'gaming', 'music'],
+    giftPreferences: 'tools and gaming accessories'
+  }
+};
+
+const generateGiftPrompt = (recipientName) => {
+  const demographics = USER_DEMOGRAPHICS[recipientName];
+  
+  return `You are a helpful gift advisor. I need gift suggestions for ${recipientName} with a budget under $30.
+
+Their interests include: ${demographics.interests.join(', ')}
+They typically enjoy: ${demographics.giftPreferences}
+
+Please provide exactly 10 specific gift ideas that:
+1. Cost less than $30
+2. Match their interests and preferences
+3. Are practical and available from common retailers
+
+For each suggestion, format the response as:
+• Gift Name - Brief explanation of why they'd like it based on their interests
+
+Remember to be specific - don't just suggest generic categories. For example, instead of "a book", suggest "The Midnight Library by Matt Haig".`;
+};
+
+const getGiftSuggestions = async (recipientName) => {
+  try {
+    const prompt = generateGiftPrompt(recipientName);
+    
+    const response = await fetch('/api/gifts', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ prompt })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to fetch gift suggestions');
+    }
+
+    const data = await response.json();
+    console.log('Frontend received:', data); // Debug log
+    
+    if (!data.suggestions || !Array.isArray(data.suggestions) || data.suggestions.length === 0) {
+      throw new Error('Invalid suggestions format received');
+    }
+
+    return data.suggestions;
+  } catch (error) {
+    console.error('Error getting gift suggestions:', error);
+    return null;
+  }
+};
+
 const COLORS = [
-  '#FF6B6B', // red
-  '#4ECDC4', // teal
-  '#45B7D1', // blue
-  '#96CEB4', // green
-  '#FFEEAD', // yellow
-  '#D4A5A5', // pink
-  '#9B786F', // brown
-  '#A8E6CE'  // mint
+  '#987284', // Mountbatten Pink
+  '#75B9BE', // Vergidiris
+  '#D0D6B5', // Beige
+  '#F9B5AC', // Melon
+  '#EE7674', // Light Coral
+  '#CEDFD9', // Azure
+  '#FEEFDD', // Antique White
+  '#32CD32'  // lime green
 ];
 
 export default function SecretSantaApp() {
@@ -43,6 +124,8 @@ export default function SecretSantaApp() {
   const [selectedUser, setSelectedUser] = useState('');
   const [birthYear, setBirthYear] = useState('');
   const [loginError, setLoginError] = useState('');
+  const [giftSuggestions, setGiftSuggestions] = useState(null);
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && isAuthenticated) {
@@ -51,18 +134,18 @@ export default function SecretSantaApp() {
           const { Wheel } = await import('spin-wheel');
           if (wheelContainerRef.current && !wheelRef.current) {
             const props = {
-                items: Object.keys(USERS).map((name, index) => ({
-                  label: name,
-                  weight: 1,
-                  backgroundColor: COLORS[index % COLORS.length]
-                })),
-                itemLabelRadiusMax: 0.7,
-                itemLabelFontSize: '16px',
-                rotationResistance: -50,
-                itemLabelAlign: 'center',
-                itemLabelColors: ['#000000'],
-                radius: 0.85,
-              };
+              items: Object.keys(USERS).map((name, index) => ({
+                label: name,
+                weight: 1,
+                backgroundColor: COLORS[index % COLORS.length]
+              })),
+              itemLabelRadiusMax: 0.7,
+              itemLabelFontSize: '32px',
+              rotationResistance: -50,
+              itemLabelAlign: 'center',
+              itemLabelColors: ['#000000'],
+              radius: 0.85,
+            };
 
             wheelRef.current = new Wheel(wheelContainerRef.current, props);
           }
@@ -101,7 +184,7 @@ export default function SecretSantaApp() {
     wheelRef.current = null;
   };
 
-  const handleSpin = (currentUser) => {
+  const handleSpin = async (currentUser) => {
     if (!wheelRef.current) return;
     
     const names = Object.keys(USERS);
@@ -109,11 +192,18 @@ export default function SecretSantaApp() {
     const matchIndex = names.indexOf(matchName);
     
     setShowMatch(false);
+    setGiftSuggestions(null);
     wheelRef.current.spinToItem(matchIndex, 3000, true, 2, 1);
     
-    setTimeout(() => {
+    setTimeout(async () => {
       setCurrentMatch(matchName);
       setShowMatch(true);
+      
+      // Get gift suggestions after wheel stops
+      setIsLoadingSuggestions(true);
+      const suggestions = await getGiftSuggestions(matchName);
+      setGiftSuggestions(suggestions);
+      setIsLoadingSuggestions(false);
     }, 3000);
   };
 
@@ -217,12 +307,18 @@ export default function SecretSantaApp() {
       />
       
       <h1>Secret Santa Wheel</h1>
-      <p>Welcome, {currentUser}!</p>
-      
+      <p style={{ 
+        fontSize: '32px', 
+        fontWeight: 'bold',
+        marginBottom: '20px'
+      }}>
+        Welcome, {currentUser}!
+      </p>
+
       <div style={{ 
         position: 'relative', 
-        width: '600px',  // Increased from 400px
-        height: '620px'  // Increased from 420px
+        width: '600px',
+        height: '620px'
       }}>
         <div style={{
           position: 'absolute',
@@ -238,8 +334,8 @@ export default function SecretSantaApp() {
         <div 
           ref={wheelContainerRef} 
           style={{ 
-            width: '600px',  // Increased from 400px
-            height: '600px', // Increased from 400px
+            width: '600px',
+            height: '600px',
             position: 'absolute',
             top: '20px'
           }}
@@ -280,9 +376,39 @@ export default function SecretSantaApp() {
       </div>
 
       {showMatch && (
-        <div style={{ textAlign: 'center', marginTop: '20px' }}>
+        <div style={{ textAlign: 'center', marginTop: '20px', maxWidth: '800px' }}>
           <h2>Your Secret Santa match is:</h2>
-          <div style={{ fontSize: '24px', color: 'blue' }}>{currentMatch}</div>
+          <div style={{ fontSize: '24px', color: 'blue', marginBottom: '20px' }}>
+            {currentMatch}
+          </div>
+          
+          {isLoadingSuggestions ? (
+  <div>Loading gift suggestions...</div>
+) : giftSuggestions ? (
+  <div style={{ 
+    textAlign: 'left',
+    backgroundColor: '#f5f5f5',
+    padding: '20px',
+    borderRadius: '8px',
+    marginTop: '20px'
+  }}>
+    <h3>Gift Suggestions:</h3>
+    <ol style={{ 
+      paddingLeft: '20px',
+      margin: '0'
+    }}>
+      {giftSuggestions.map((suggestion, index) => (
+        <li key={index} style={{ 
+          marginBottom: '12px',
+          paddingLeft: '10px',
+          lineHeight: '1.4'
+        }}>
+          {suggestion}
+        </li>
+      ))}
+    </ol>
+  </div>
+) : null}
         </div>
       )}
     </div>
