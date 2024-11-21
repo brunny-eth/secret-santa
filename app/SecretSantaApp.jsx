@@ -4,12 +4,13 @@ import Script from 'next/script';
 
 const USERS = {
   'Rocco': '2004',
-  'Victoria': '1990',
+  'Victoria': '2004',
   'Hannah': '1995',
-  'Bruno': '1985',
-  'Marcela': '1988',
-  'Miguel': '1992',
-  'Steven': '1987'
+  'Bruno': '1995',
+  'Marcela': '1965',
+  'Miguel': '1963',
+  'Steven': '1990',
+  'Nicole': "1990",
 };
 
 const MATCHES = {
@@ -24,30 +25,37 @@ const MATCHES = {
 
 const USER_DEMOGRAPHICS = {
   'Rocco': {
-    interests: ['gaming', 'sports', 'tech'],
-    giftPreferences: 'modern gadgets and gaming accessories'
+    birthYear: 2004,
+    interests: ['cars', 'building things','tools', 'legos','technology','planes','Formula One'],
+    giftPreferences: 'tools or things you can build'
   },
   'Victoria': {
-    interests: ['reading', 'cooking', 'travel'],
+    birthYear: 2004,
+    interests: ['matcha', 'pilates', 'dancing with the stars','traveling','quest chips'],
     giftPreferences: 'books and kitchen gadgets'
   },
   'Hannah': {
+    birthYear: 1995,
     interests: ['fitness', 'music', 'art'],
     giftPreferences: 'creative supplies and workout gear'
   },
   'Bruno': {
+    birthYear: 1995,
     interests: ['outdoors', 'photography', 'coffee'],
     giftPreferences: 'adventure gear and coffee accessories'
   },
   'Marcela': {
+    birthYear: 1965,
     interests: ['gardening', 'yoga', 'crafts'],
     giftPreferences: 'plants and craft supplies'
   },
   'Miguel': {
+    birthYear: 1963,
     interests: ['cooking', 'movies', 'tech'],
     giftPreferences: 'kitchen gadgets and entertainment'
   },
   'Steven': {
+    birthYear: 1990,
     interests: ['DIY', 'gaming', 'music'],
     giftPreferences: 'tools and gaming accessories'
   }
@@ -55,8 +63,9 @@ const USER_DEMOGRAPHICS = {
 
 const generateGiftPrompt = (recipientName) => {
   const demographics = USER_DEMOGRAPHICS[recipientName];
-  
-  return `You are a helpful gift advisor. I need gift suggestions for ${recipientName} with a budget under $30.
+  const age = new Date().getFullYear() - demographics.birthYear;
+
+  return `You are a helpful gift advisor. I need gift suggestions for ${recipientName}, who is ${age} years old, with a budget under $30.
 
 Their interests include: ${demographics.interests.join(', ')}
 They typically enjoy: ${demographics.giftPreferences}
@@ -71,6 +80,7 @@ For each suggestion, format the response as:
 
 Remember to be specific - don't just suggest generic categories. For example, instead of "a book", suggest "The Midnight Library by Matt Haig".`;
 };
+
 
 const getGiftSuggestions = async (recipientName) => {
   try {
