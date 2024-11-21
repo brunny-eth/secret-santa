@@ -33,10 +33,11 @@ const SetupPage = ({ onSetupComplete }) => {
   };
 
   const handleInterestsChange = (id, value) => {
-    const interests = value.split(',').map(i => i.trim()).filter(i => i);
+    // Simple split on commas, trim each value, remove empties
+    const interests = value.split(',').map(v => v.trim()).filter(v => v !== '');
     updateParticipant(id, 'interests', interests);
   };
-
+  
   const generateMatches = (participants) => {
     const shuffled = [...participants];
     let matches = {};
@@ -186,17 +187,17 @@ const SetupPage = ({ onSetupComplete }) => {
                 Interests (comma-separated)
               </label>
               <input
-                type="text"
-                value={participant.interests.join(', ')}
-                onChange={(e) => handleInterestsChange(participant.id, e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '8px',
-                  border: '1px solid #ccc',
-                  borderRadius: '4px'
-                }}
-                placeholder="e.g., reading, cooking, gaming"
-              />
+              type="text"
+              value={participant.interests.join(', ')} // This stays the same
+              onChange={(e) => handleInterestsChange(participant.id, e.target.value)}
+              style={{
+                width: '100%',
+                padding: '8px',
+                border: '1px solid #ccc',
+                borderRadius: '4px'
+              }}
+              placeholder="e.g., reading, cooking, gaming"
+            />
             </div>
 
             <div>

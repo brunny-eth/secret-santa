@@ -15,17 +15,15 @@ const COLORS = [
 ];
 
 export default function SecretSantaApp() {
-  // Add new state for setup
+  // All state declarations consolidated at the top
+  const [gameCode, setGameCode] = useState('');
+  const [isJoining, setIsJoining] = useState(false);
   const [isSetup, setIsSetup] = useState(false);
   const [appData, setAppData] = useState({
     matches: {},
     userDemographics: {},
     users: {}
   });
-
-  // Existing state
-  const wheelContainerRef = useRef(null);
-  const wheelRef = useRef(null);
   const [showMatch, setShowMatch] = useState(false);
   const [currentMatch, setCurrentMatch] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -36,7 +34,89 @@ export default function SecretSantaApp() {
   const [giftSuggestions, setGiftSuggestions] = useState(null);
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
 
-  // Modified useEffect to use appData.users instead of hardcoded USERS
+  // Refs
+  const wheelContainerRef = useRef(null);
+  const wheelRef = useRef(null);
+
+  // Handle setup completion
+  const handleSetupComplete = async (setupData) => {
+    try {
+      const response = await fetch('/api/game', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'create',
+          gameData: setupData
+        })
+      });
+      
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+      
+      setGameCode(data.gameCode);
+      setAppData(setupData);
+      setIsSetup(true);
+    } catch (error) {
+      alert('Failed to create game: ' + error.message);
+    }
+  };
+
+  // Handle joining existing game
+  const handleJoinGame = async (enteredCode) => {
+    try {
+      const response = await fetch('/api/game', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'load',
+          gameCode: enteredCode
+        })
+      });
+      
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error);
+      
+      setGameCode(enteredCode);
+      setAppData(data);
+      setIsSetup(true);
+      setIsJoining(false);
+    } catch (error) {
+      alert('Failed to join game: ' + error.message);
+    }
+  };
+
+
+  const getGiftSuggestions = async (recipientName) => {
+    try {
+      const prompt = generateGiftPrompt(recipientName);
+      
+      const response = await fetch('/api/gifts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prompt })
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch gift suggestions');
+      }
+  
+      const data = await response.json();
+      console.log('Frontend received:', data);
+      
+      if (!data.suggestions || !Array.isArray(data.suggestions) || data.suggestions.length === 0) {
+        throw new Error('Invalid suggestions format received');
+      }
+  
+      return data.suggestions;
+    } catch (error) {
+      console.error('Error getting gift suggestions:', error);
+      return null;
+    }
+  };
+
   useEffect(() => {
     if (typeof window !== 'undefined' && isAuthenticated) {
       const loadWheel = async () => {
@@ -96,37 +176,6 @@ export default function SecretSantaApp() {
   };
 
 
-  const getGiftSuggestions = async (recipientName) => {
-    try {
-      const prompt = generateGiftPrompt(recipientName);
-      
-      const response = await fetch('/api/gifts', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ prompt })
-      });
-  
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch gift suggestions');
-      }
-  
-      const data = await response.json();
-      console.log('Frontend received:', data); // Debug log
-      
-      if (!data.suggestions || !Array.isArray(data.suggestions) || data.suggestions.length === 0) {
-        throw new Error('Invalid suggestions format received');
-      }
-  
-      return data.suggestions;
-    } catch (error) {
-      console.error('Error getting gift suggestions:', error);
-      return null;
-    }
-  };
-
   // Modified generateGiftPrompt to use appData.userDemographics
   const generateGiftPrompt = (recipientName) => {
     const demographics = appData.userDemographics[recipientName];
@@ -171,15 +220,95 @@ Remember to be specific - don't just suggest generic categories. For example, in
     }, 3000);
   };
 
-  // Setup page handler
-  const handleSetupComplete = (setupData) => {
-    setAppData(setupData);
-    setIsSetup(true);
-  };
+// Add this function before the render logic (before the first if statement)
+const renderJoinGame = () => (
+  <div style={{ 
+    display: 'flex', 
+    flexDirection: 'column', 
+    alignItems: 'center',
+    padding: '20px'
+  }}>
+    <h1>Secret Santa</h1>
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '20px',
+      marginTop: '20px'
+    }}>
+      <button
+        onClick={() => setIsJoining(false)}
+        style={{
+          padding: '10px 20px',
+          backgroundColor: '#4CAF50',
+          color: 'white',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: 'pointer'
+        }}
+      >
+        Create New Game
+      </button>
+      
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '10px'
+      }}>
+        <input
+          type="text"
+          placeholder="Enter Game Code"
+          value={gameCode}
+          onChange={(e) => setGameCode(e.target.value)}
+          style={{
+            padding: '8px',
+            borderRadius: '4px',
+            border: '1px solid #ccc'
+          }}
+        />
+        <button
+          onClick={() => handleJoinGame(gameCode)}
+          style={{
+            padding: '10px 20px',
+            backgroundColor: '#2196F3',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+        >
+          Join Game
+        </button>
+      </div>
+    </div>
+  </div>
+);
 
   // Render logic based on setup and authentication state
-  if (!isSetup) {
-    return <SetupPage onSetupComplete={handleSetupComplete} />;
+   if (!isSetup) {
+    if (isJoining) {
+      return renderJoinGame();
+    }
+    return (
+      <div>
+        <button
+          onClick={() => setIsJoining(true)}
+          style={{
+            position: 'absolute',
+            top: '20px',
+            right: '20px',
+            padding: '8px 16px',
+            backgroundColor: '#2196F3',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+        >
+          Join Existing Game
+        </button>
+        <SetupPage onSetupComplete={handleSetupComplete} />
+      </div>
+    );
   }
 
   if (!isAuthenticated) {

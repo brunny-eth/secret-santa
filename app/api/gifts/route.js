@@ -17,16 +17,13 @@ export async function POST(request) {
       }]
     });
 
-    // The content is now in the response object
-    console.log('Full Claude Response:', response);
-    
     // Extract the text from the response
     const text = response.content[0].text;
     
-    // Split into suggestions
+    // Split into suggestions and clean them up
     const suggestions = text.split('\n')
-      .filter(line => line.trim() && line.match(/^\d+\./))  // Keep only numbered lines
-      .map(line => line.replace(/^\d+\.\s*/, '')); // Remove the number prefix
+      .filter(line => line.trim() && line.startsWith('•')) // Keep only bullet points
+      .map(line => line.trim().substring(2).trim()); // Remove bullet point and trim
 
     return Response.json({ suggestions });
   } catch (error) {
