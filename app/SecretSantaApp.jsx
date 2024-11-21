@@ -1,117 +1,7 @@
 'use client';
 import React, { useEffect, useRef, useState } from 'react';
 import Script from 'next/script';
-
-const USERS = {
-  'Rocco': '2004',
-  'Victoria': '2004',
-  'Hannah': '1995',
-  'Bruno': '1995',
-  'Marcela': '1965',
-  'Miguel': '1963',
-  'Steven': '1990',
-  'Nicole': "1990",
-};
-
-const MATCHES = {
-  'Rocco': 'Victoria',
-  'Victoria': 'Hannah',
-  'Hannah': 'Bruno',
-  'Bruno': 'Marcela',
-  'Marcela': 'Miguel',
-  'Miguel': 'Steven',
-  'Steven': 'Rocco'
-};
-
-const USER_DEMOGRAPHICS = {
-  'Rocco': {
-    birthYear: 2004,
-    interests: ['cars', 'building things','tools', 'legos','technology','planes','Formula One'],
-    giftPreferences: 'tools or things you can build'
-  },
-  'Victoria': {
-    birthYear: 2004,
-    interests: ['matcha', 'pilates', 'dancing with the stars','traveling','quest chips'],
-    giftPreferences: 'books and kitchen gadgets'
-  },
-  'Hannah': {
-    birthYear: 1995,
-    interests: ['fitness', 'music', 'art'],
-    giftPreferences: 'creative supplies and workout gear'
-  },
-  'Bruno': {
-    birthYear: 1995,
-    interests: ['outdoors', 'photography', 'coffee'],
-    giftPreferences: 'adventure gear and coffee accessories'
-  },
-  'Marcela': {
-    birthYear: 1965,
-    interests: ['gardening', 'yoga', 'crafts'],
-    giftPreferences: 'plants and craft supplies'
-  },
-  'Miguel': {
-    birthYear: 1963,
-    interests: ['cooking', 'movies', 'tech'],
-    giftPreferences: 'kitchen gadgets and entertainment'
-  },
-  'Steven': {
-    birthYear: 1990,
-    interests: ['DIY', 'gaming', 'music'],
-    giftPreferences: 'tools and gaming accessories'
-  }
-};
-
-const generateGiftPrompt = (recipientName) => {
-  const demographics = USER_DEMOGRAPHICS[recipientName];
-  const age = new Date().getFullYear() - demographics.birthYear;
-
-  return `You are a helpful gift advisor. I need gift suggestions for ${recipientName}, who is ${age} years old, with a budget under $30.
-
-Their interests include: ${demographics.interests.join(', ')}
-They typically enjoy: ${demographics.giftPreferences}
-
-Please provide exactly 10 specific gift ideas that:
-1. Cost less than $30
-2. Match their interests and preferences
-3. Are practical and available from common retailers
-
-For each suggestion, format the response as:
-• Gift Name - Brief explanation of why they'd like it based on their interests
-
-Remember to be specific - don't just suggest generic categories. For example, instead of "a book", suggest "The Midnight Library by Matt Haig".`;
-};
-
-
-const getGiftSuggestions = async (recipientName) => {
-  try {
-    const prompt = generateGiftPrompt(recipientName);
-    
-    const response = await fetch('/api/gifts', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ prompt })
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to fetch gift suggestions');
-    }
-
-    const data = await response.json();
-    console.log('Frontend received:', data); // Debug log
-    
-    if (!data.suggestions || !Array.isArray(data.suggestions) || data.suggestions.length === 0) {
-      throw new Error('Invalid suggestions format received');
-    }
-
-    return data.suggestions;
-  } catch (error) {
-    console.error('Error getting gift suggestions:', error);
-    return null;
-  }
-};
+import SetupPage from './setuppage.jsx';
 
 const COLORS = [
   '#987284', // Mountbatten Pink
@@ -125,6 +15,15 @@ const COLORS = [
 ];
 
 export default function SecretSantaApp() {
+  // Add new state for setup
+  const [isSetup, setIsSetup] = useState(false);
+  const [appData, setAppData] = useState({
+    matches: {},
+    userDemographics: {},
+    users: {}
+  });
+
+  // Existing state
   const wheelContainerRef = useRef(null);
   const wheelRef = useRef(null);
   const [showMatch, setShowMatch] = useState(false);
@@ -137,6 +36,7 @@ export default function SecretSantaApp() {
   const [giftSuggestions, setGiftSuggestions] = useState(null);
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
 
+  // Modified useEffect to use appData.users instead of hardcoded USERS
   useEffect(() => {
     if (typeof window !== 'undefined' && isAuthenticated) {
       const loadWheel = async () => {
@@ -144,7 +44,7 @@ export default function SecretSantaApp() {
           const { Wheel } = await import('spin-wheel');
           if (wheelContainerRef.current && !wheelRef.current) {
             const props = {
-              items: Object.keys(USERS).map((name, index) => ({
+              items: Object.keys(appData.users).map((name, index) => ({
                 label: name,
                 weight: 1,
                 backgroundColor: COLORS[index % COLORS.length]
@@ -166,8 +66,9 @@ export default function SecretSantaApp() {
 
       loadWheel();
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, appData.users]);
 
+  // Modified login handler to use appData.users
   const handleLogin = (e) => {
     e.preventDefault();
     if (!selectedUser || !birthYear) {
@@ -175,7 +76,7 @@ export default function SecretSantaApp() {
       return;
     }
 
-    if (USERS[selectedUser] === birthYear) {
+    if (appData.users[selectedUser] === birthYear) {
       setIsAuthenticated(true);
       setCurrentUser(selectedUser);
       setLoginError('');
@@ -194,11 +95,65 @@ export default function SecretSantaApp() {
     wheelRef.current = null;
   };
 
+
+  const getGiftSuggestions = async (recipientName) => {
+    try {
+      const prompt = generateGiftPrompt(recipientName);
+      
+      const response = await fetch('/api/gifts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prompt })
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch gift suggestions');
+      }
+  
+      const data = await response.json();
+      console.log('Frontend received:', data); // Debug log
+      
+      if (!data.suggestions || !Array.isArray(data.suggestions) || data.suggestions.length === 0) {
+        throw new Error('Invalid suggestions format received');
+      }
+  
+      return data.suggestions;
+    } catch (error) {
+      console.error('Error getting gift suggestions:', error);
+      return null;
+    }
+  };
+
+  // Modified generateGiftPrompt to use appData.userDemographics
+  const generateGiftPrompt = (recipientName) => {
+    const demographics = appData.userDemographics[recipientName];
+    const age = new Date().getFullYear() - demographics.birthYear;
+
+    return `You are a helpful gift advisor. I need gift suggestions for ${recipientName}, who is ${age} years old, with a budget under $30.
+
+Their interests include: ${demographics.interests.join(', ')}
+They typically enjoy: ${demographics.giftPreferences}
+
+Please provide exactly 10 specific gift ideas that:
+1. Cost less than $30
+2. Match their interests and preferences
+3. Are practical and available from common retailers
+
+For each suggestion, format the response as:
+• Gift Name - Brief explanation of why they'd like it based on their interests
+
+Remember to be specific - don't just suggest generic categories. For example, instead of "a book", suggest "The Midnight Library by Matt Haig".`;
+  };
+
+  // Modified spin handler to use appData.matches
   const handleSpin = async (currentUser) => {
     if (!wheelRef.current) return;
     
-    const names = Object.keys(USERS);
-    const matchName = MATCHES[currentUser];
+    const names = Object.keys(appData.users);
+    const matchName = appData.matches[currentUser];
     const matchIndex = names.indexOf(matchName);
     
     setShowMatch(false);
@@ -209,13 +164,23 @@ export default function SecretSantaApp() {
       setCurrentMatch(matchName);
       setShowMatch(true);
       
-      // Get gift suggestions after wheel stops
       setIsLoadingSuggestions(true);
       const suggestions = await getGiftSuggestions(matchName);
       setGiftSuggestions(suggestions);
       setIsLoadingSuggestions(false);
     }, 3000);
   };
+
+  // Setup page handler
+  const handleSetupComplete = (setupData) => {
+    setAppData(setupData);
+    setIsSetup(true);
+  };
+
+  // Render logic based on setup and authentication state
+  if (!isSetup) {
+    return <SetupPage onSetupComplete={handleSetupComplete} />;
+  }
 
   if (!isAuthenticated) {
     return (
@@ -255,7 +220,7 @@ export default function SecretSantaApp() {
               required
             >
               <option value="">Choose your name...</option>
-              {Object.keys(USERS).map(name => (
+              {Object.keys(appData.users).map(name => (
                 <option key={name} value={name}>{name}</option>
               ))}
             </select>
@@ -304,6 +269,7 @@ export default function SecretSantaApp() {
     );
   }
 
+  // Rest of the component remains the same...
   return (
     <div style={{ 
       display: 'flex', 
@@ -393,34 +359,35 @@ export default function SecretSantaApp() {
           </div>
           
           {isLoadingSuggestions ? (
-  <div>Loading gift suggestions...</div>
-) : giftSuggestions ? (
-  <div style={{ 
-    textAlign: 'left',
-    backgroundColor: '#f5f5f5',
-    padding: '20px',
-    borderRadius: '8px',
-    marginTop: '20px'
-  }}>
-    <h3>Gift Suggestions:</h3>
-    <ol style={{ 
-      paddingLeft: '20px',
-      margin: '0'
-    }}>
-      {giftSuggestions.map((suggestion, index) => (
-        <li key={index} style={{ 
-          marginBottom: '12px',
-          paddingLeft: '10px',
-          lineHeight: '1.4'
-        }}>
-          {suggestion}
-        </li>
-      ))}
-    </ol>
-  </div>
-) : null}
+            <div>Loading gift suggestions...</div>
+          ) : giftSuggestions ? (
+            <div style={{ 
+              textAlign: 'left',
+              backgroundColor: '#f5f5f5',
+              padding: '20px',
+              borderRadius: '8px',
+              marginTop: '20px'
+            }}>
+              <h3>Gift Suggestions:</h3>
+              <ol style={{ 
+                paddingLeft: '20px',
+                margin: '0'
+              }}>
+                {giftSuggestions.map((suggestion, index) => (
+                  <li key={index} style={{ 
+                    marginBottom: '12px',
+                    paddingLeft: '10px',
+                    lineHeight: '1.4'
+                  }}>
+                    {suggestion}
+                  </li>
+                ))}
+              </ol>
+            </div>
+          ) : null}
         </div>
       )}
     </div>
   );
 }
+
