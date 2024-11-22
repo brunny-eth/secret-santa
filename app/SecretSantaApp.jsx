@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Script from 'next/script';
 import SetupPage from './setuppage.jsx';
+import ReviewParticipants from './ReviewParticipants';
 
 const COLORS = [
   '#987284', // Mountbatten Pink
@@ -38,16 +39,28 @@ export default function SecretSantaApp() {
   const wheelContainerRef = useRef(null);
   const wheelRef = useRef(null);
 
+  const [showReview, setShowReview] = useState(false);
+  const [editingParticipantIndex, setEditingParticipantIndex] = useState(null); 
 
   // Handle setup completion
-  const handleSetupComplete = async (setupData) => {
+  const handleSetupComplete = (setupData) => {
+    setAppData(setupData);
+    setShowReview(true);
+  };
+
+  const handleEditParticipant = (index) => {
+    setEditingParticipantIndex(index);
+    setShowReview(false);
+  };
+  
+  const handleConfirmParticipants = async () => {
     try {
       const response = await fetch('/api/game', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'create',
-          gameData: setupData
+          gameData: appData
         })
       });
       
@@ -55,13 +68,13 @@ export default function SecretSantaApp() {
       if (!response.ok) throw new Error(data.error);
       
       setGameCode(data.gameCode);
-      setAppData(setupData);
       setIsSetup(true);
+      setShowReview(false);
+      setShowGameCode(true);
     } catch (error) {
       alert('Failed to create game: ' + error.message);
     }
   };
-
 
   // Handle joining existing game
   const handleJoinGame = async (enteredCode) => {
@@ -156,6 +169,8 @@ export default function SecretSantaApp() {
     }
   }, [isAuthenticated, appData.users]);
 
+
+  
   // Modified login handler to use appData.users
   const handleLogin = (e) => {
     e.preventDefault();
@@ -234,7 +249,6 @@ Remember to be specific - don't just suggest generic categories. For example, in
     setShowGameCode(false);
   };
 
-// Add this function before the render logic (before the first if statement)
 const renderJoinGame = () => (
   <div style={{ 
     display: 'flex', 
@@ -298,7 +312,20 @@ const renderJoinGame = () => (
 );
 
   // Render logic based on setup and authentication state
-   if (!isSetup) {
+    if (showReview) {
+      return <ReviewParticipants 
+        participants={Object.entries(appData.users).map(([name, birthYear]) => ({
+          name,
+          birthYear,
+          interests: appData.userDemographics[name].interests.join(', '),
+          giftPreferences: appData.userDemographics[name].giftPreferences
+        }))}
+        onEdit={handleEditParticipant}
+        onConfirm={handleConfirmParticipants}
+      />;
+    }
+
+  if (!isSetup) {
     if (isJoining) {
       return renderJoinGame();
     }
@@ -457,7 +484,14 @@ const renderJoinGame = () => (
     );
   }
 
-  // Rest of the component remains the same...
+  console.log('States:', {
+    showReview,
+    isSetup,
+    isAuthenticated,
+    isJoining,
+    showGameCode
+  });
+
   return (
     <div style={{ 
       display: 'flex', 
