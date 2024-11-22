@@ -38,6 +38,7 @@ export default function SecretSantaApp() {
   const wheelContainerRef = useRef(null);
   const wheelRef = useRef(null);
 
+
   // Handle setup completion
   const handleSetupComplete = async (setupData) => {
     try {
@@ -60,6 +61,7 @@ export default function SecretSantaApp() {
       alert('Failed to create game: ' + error.message);
     }
   };
+
 
   // Handle joining existing game
   const handleJoinGame = async (enteredCode) => {
@@ -181,6 +183,8 @@ export default function SecretSantaApp() {
     wheelRef.current = null;
   };
 
+  const [showGameCode, setShowGameCode] = useState(true);
+
 
   // Modified generateGiftPrompt to use appData.userDemographics
   const generateGiftPrompt = (recipientName) => {
@@ -224,6 +228,10 @@ Remember to be specific - don't just suggest generic categories. For example, in
       setGiftSuggestions(suggestions);
       setIsLoadingSuggestions(false);
     }, 3000);
+  };
+
+  const handleContinueToLogin = () => {
+    setShowGameCode(false);
   };
 
 // Add this function before the render logic (before the first if statement)
@@ -317,7 +325,52 @@ const renderJoinGame = () => (
     );
   }
 
-  if (!isAuthenticated) {
+  else if (isSetup && !isAuthenticated && !isJoining && showGameCode) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        alignItems: 'center',
+        padding: '20px'
+      }}>
+        <h1>Game Created Successfully!</h1>
+        <div style={{
+          marginTop: '20px',
+          padding: '20px',
+          border: '2px solid #4CAF50',
+          borderRadius: '8px',
+          textAlign: 'center'
+        }}>
+          <h2>Your Game Code:</h2>
+          <p style={{ 
+            fontSize: '24px', 
+            fontWeight: 'bold',
+            color: '#4CAF50',
+            margin: '10px 0'
+          }}>
+            {gameCode}
+          </p>
+          <p>Share this code with other participants so they can join the game.</p>
+        </div>
+        <button
+          onClick={handleContinueToLogin}
+          style={{
+            marginTop: '20px',
+            padding: '10px 20px',
+            backgroundColor: '#4CAF50',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+        >
+          Continue to Login
+        </button>
+      </div>
+    );
+  }
+
+  else if (!isAuthenticated) {
     return (
       <div style={{ 
         display: 'flex', 
