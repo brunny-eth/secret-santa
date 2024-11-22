@@ -3,19 +3,19 @@ import { Plus, Trash2, Save } from 'lucide-react';
 
 const SetupPage = ({ onSetupComplete }) => {
   const [participants, setParticipants] = useState([
-    { id: 1, name: '', birthYear: '', interests: [], giftPreferences: '' }
+    { id: 1, name: '', birthYear: '', interests: '', giftPreferences: '' }
   ]);
-  const [setupComplete, setSetupComplete] = useState(false);
+  const [setupComplete, setSetupComplete] = useState(false);  
 
   const addParticipant = () => {
-    if (participants.length >= 8) return; // Limit to 8 participants
+    if (participants.length >= 8) return;
     setParticipants([
       ...participants,
       {
         id: participants.length + 1,
         name: '',
-        birthYear: '',
-        interests: [],
+        birthYear: '', 
+        interests: '', // Changed to string
         giftPreferences: ''
       }
     ]);
@@ -32,12 +32,6 @@ const SetupPage = ({ onSetupComplete }) => {
     ));
   };
 
-  const handleInterestsChange = (id, value) => {
-    // Simple split on commas, trim each value, remove empties
-    const interests = value.split(',').map(v => v.trim()).filter(v => v !== '');
-    updateParticipant(id, 'interests', interests);
-  };
-  
   const generateMatches = (participants) => {
     const shuffled = [...participants];
     let matches = {};
@@ -64,25 +58,25 @@ const SetupPage = ({ onSetupComplete }) => {
   const handleSetupComplete = () => {
     // Validate all fields are filled
     const isValid = participants.every(p => 
-      p.name && p.birthYear && p.interests.length > 0 && p.giftPreferences
+      p.name && p.birthYear && p.interests && p.giftPreferences
     );
-
+  
     if (!isValid) {
       alert('Please fill in all fields for all participants');
       return;
     }
-
+  
     const matches = generateMatches(participants);
-    
-    // Create user demographics object
-    const userDemographics = {};
-    participants.forEach(p => {
-      userDemographics[p.name] = {
-        birthYear: parseInt(p.birthYear),
-        interests: p.interests,
-        giftPreferences: p.giftPreferences
-      };
-    });
+
+  const userDemographics = {};
+  participants.forEach(p => {
+    userDemographics[p.name] = {
+      birthYear: parseInt(p.birthYear),
+      interests: p.interests.split(',').map(i => i.trim()).filter(Boolean),
+      giftPreferences: p.giftPreferences
+    };
+  });
+
 
     // Create users object (for login)
     const users = {};
@@ -187,22 +181,22 @@ const SetupPage = ({ onSetupComplete }) => {
                 Interests (comma-separated)
               </label>
               <input
-              type="text"
-              value={participant.interests.join(', ')} // This stays the same
-              onChange={(e) => handleInterestsChange(participant.id, e.target.value)}
-              style={{
-                width: '100%',
-                padding: '8px',
-                border: '1px solid #ccc',
-                borderRadius: '4px'
-              }}
-              placeholder="e.g., reading, cooking, gaming"
-            />
+                type="text"
+                value={participant.interests}
+                onChange={(e) => updateParticipant(participant.id, 'interests', e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '8px',
+                  border: '1px solid #ccc',
+                  borderRadius: '4px'
+                }}
+                placeholder="e.g., reading, cooking, gaming"
+              />
             </div>
 
             <div>
               <label style={{ display: 'block', marginBottom: '5px' }}>
-                Gift Preferences
+                Gift Preferences (comma-separated)
               </label>
               <input
                 type="text"

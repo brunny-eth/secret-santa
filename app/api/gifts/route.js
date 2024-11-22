@@ -20,14 +20,34 @@ export async function POST(request) {
     // Extract the text from the response
     const text = response.content[0].text;
     
+    console.log('Claude response:', text);
+
     // Split into suggestions and clean them up
     const suggestions = text.split('\n')
-      .filter(line => line.trim() && line.startsWith('•')) // Keep only bullet points
-      .map(line => line.trim().substring(2).trim()); // Remove bullet point and trim
+      .filter(line => {
+        const trimmed = line.trim();
+        // Match either bullet points or numbered items (e.g., "1.", "2.", etc)
+        return trimmed && (trimmed.startsWith('•') || /^\d+\./.test(trimmed));
+      })
+      .map(line => {
+        const trimmed = line.trim();
+        // Remove bullet point or number prefix
+        return trimmed.replace(/^(?:\d+\.|•)\s*/, '').trim();
+      });
+
+    console.log('Processed suggestions:', suggestions);
+
+    // Verify we have suggestions before sending
+    if (!suggestions || suggestions.length === 0) {
+      return Response.json({ error: 'No suggestions generated' }, { status: 500 });
+    }
 
     return Response.json({ suggestions });
   } catch (error) {
-    console.error('Error calling Claude API:', error);
-    return Response.json({ error: 'Failed to get suggestions' }, { status: 500 });
+    console.error('Error in gifts API:', error);
+    return Response.json({ 
+      error: 'Failed to get suggestions', 
+      details: error.message 
+    }, { status: 500 });
   }
 }

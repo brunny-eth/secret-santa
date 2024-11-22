@@ -85,7 +85,6 @@ export default function SecretSantaApp() {
     }
   };
 
-
   const getGiftSuggestions = async (recipientName) => {
     try {
       const prompt = generateGiftPrompt(recipientName);
@@ -98,25 +97,32 @@ export default function SecretSantaApp() {
         body: JSON.stringify({ prompt })
       });
   
+      const data = await response.json();
+      
+      // Log the response
+      console.log('API Response:', data);
+  
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch gift suggestions');
+        throw new Error(data.error || 'Failed to fetch gift suggestions');
       }
   
-      const data = await response.json();
-      console.log('Frontend received:', data);
-      
-      if (!data.suggestions || !Array.isArray(data.suggestions) || data.suggestions.length === 0) {
-        throw new Error('Invalid suggestions format received');
+      if (!data.suggestions || !Array.isArray(data.suggestions)) {
+        console.error('Invalid response format:', data);
+        throw new Error('Invalid response format from API');
+      }
+  
+      if (data.suggestions.length === 0) {
+        throw new Error('No suggestions returned');
       }
   
       return data.suggestions;
     } catch (error) {
       console.error('Error getting gift suggestions:', error);
+      setGiftSuggestions(['Failed to get gift suggestions. Please try again.']);
       return null;
     }
   };
-
+  
   useEffect(() => {
     if (typeof window !== 'undefined' && isAuthenticated) {
       const loadWheel = async () => {
