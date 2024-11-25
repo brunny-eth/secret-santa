@@ -23,8 +23,10 @@ export const storage = {
   },
 
   generateGameCode: () => {
-    const code = Math.floor(10000000 + Math.random() * 90000000).toString();
+    // Generate a number between 1000 and 9999
+    const code = Math.floor(1000 + Math.random() * 9000).toString();
     const filePath = path.join(STORAGE_DIR, `${code}.json`);
+    // If the code already exists, try again
     return fs.existsSync(filePath) ? storage.generateGameCode() : code;
   }
 };

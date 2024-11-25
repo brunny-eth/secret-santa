@@ -3,7 +3,7 @@ import { Plus, Trash2, Save } from 'lucide-react';
 
 const SetupPage = ({ onSetupComplete }) => {
   const [participants, setParticipants] = useState([
-    { id: 1, name: '', birthYear: '', interests: '', giftPreferences: '' }
+    { id: 1, name: '', birthYear: '', interests: '' } 
   ]);
   const [setupComplete, setSetupComplete] = useState(false);  
 
@@ -15,8 +15,7 @@ const SetupPage = ({ onSetupComplete }) => {
         id: participants.length + 1,
         name: '',
         birthYear: '', 
-        interests: '', // Changed to string
-        giftPreferences: ''
+        interests: '', 
       }
     ]);
   };
@@ -56,9 +55,8 @@ const SetupPage = ({ onSetupComplete }) => {
   };
 
   const handleSetupComplete = () => {
-    // Validate all fields are filled
     const isValid = participants.every(p => 
-      p.name && p.birthYear && p.interests && p.giftPreferences
+      p.name && p.birthYear && p.interests 
     );
   
     if (!isValid) {
@@ -68,17 +66,14 @@ const SetupPage = ({ onSetupComplete }) => {
   
     const matches = generateMatches(participants);
 
-  const userDemographics = {};
-  participants.forEach(p => {
-    userDemographics[p.name] = {
-      birthYear: parseInt(p.birthYear),
-      interests: p.interests.split(',').map(i => i.trim()).filter(Boolean),
-      giftPreferences: p.giftPreferences
-    };
-  });
+    const userDemographics = {};
+    participants.forEach(p => {
+      userDemographics[p.name] = {
+        birthYear: parseInt(p.birthYear),
+        interests: p.interests.split(',').map(i => i.trim()).filter(Boolean)
+      };
+    });
 
-
-    // Create users object (for login)
     const users = {};
     participants.forEach(p => {
       users[p.name] = p.birthYear;
@@ -191,24 +186,6 @@ const SetupPage = ({ onSetupComplete }) => {
                   borderRadius: '4px'
                 }}
                 placeholder="e.g., reading, cooking, gaming"
-              />
-            </div>
-
-            <div>
-              <label style={{ display: 'block', marginBottom: '5px' }}>
-                Gift Preferences (comma-separated)
-              </label>
-              <input
-                type="text"
-                value={participant.giftPreferences}
-                onChange={(e) => updateParticipant(participant.id, 'giftPreferences', e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '8px',
-                  border: '1px solid #ccc',
-                  borderRadius: '4px'
-                }}
-                placeholder="e.g., books and kitchen gadgets"
               />
             </div>
           </div>

@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Script from 'next/script';
 import SetupPage from './setuppage.jsx';
-import ReviewParticipants from './ReviewParticipants';
+import ReviewParticipants from './ReviewParticipants.jsx';
 
 const COLORS = [
   '#987284', // Mountbatten Pink
@@ -208,7 +208,6 @@ export default function SecretSantaApp() {
     return `You are helping with Secret Santa shopping. Suggest 6 specific gifts under $30 for ${recipientName} (${age} years old).
   
   Their interests: ${demographics.interests.join(', ')}
-  Gift preferences: ${demographics.giftPreferences}
   
   Use this exact format, one per line:
   - Gift name - Brief reason they'll like it`;
@@ -304,18 +303,17 @@ const renderJoinGame = () => (
 );
 
   // Render logic based on setup and authentication state
-    if (showReview) {
-      return <ReviewParticipants 
-        participants={Object.entries(appData.users).map(([name, birthYear]) => ({
-          name,
-          birthYear,
-          interests: appData.userDemographics[name].interests.join(', '),
-          giftPreferences: appData.userDemographics[name].giftPreferences
-        }))}
-        onEdit={handleEditParticipant}
-        onConfirm={handleConfirmParticipants}
-      />;
-    }
+  if (showReview) {
+    return <ReviewParticipants 
+      participants={Object.entries(appData.users).map(([name, birthYear]) => ({
+        name,
+        birthYear,
+        interests: appData.userDemographics[name].interests.join(', ')
+      }))}
+      onEdit={handleEditParticipant}
+      onConfirm={handleConfirmParticipants}
+    />;
+  }
 
   if (!isSetup) {
     if (isJoining) {
