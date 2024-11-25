@@ -201,25 +201,17 @@ export default function SecretSantaApp() {
   const [showGameCode, setShowGameCode] = useState(true);
 
 
-  // Modified generateGiftPrompt to use appData.userDemographics
   const generateGiftPrompt = (recipientName) => {
     const demographics = appData.userDemographics[recipientName];
     const age = new Date().getFullYear() - demographics.birthYear;
-
-    return `You are a helpful gift advisor. I need gift suggestions for ${recipientName}, who is ${age} years old, with a budget under $30.
-
-Their interests include: ${demographics.interests.join(', ')}
-They typically enjoy: ${demographics.giftPreferences}
-
-Please provide exactly 10 specific gift ideas that:
-1. Cost less than $30
-2. Match their interests and preferences
-3. Are practical and available from common retailers
-
-For each suggestion, format the response as:
-• Gift Name - Brief explanation of why they'd like it based on their interests
-
-Remember to be specific - don't just suggest generic categories. For example, instead of "a book", suggest "The Midnight Library by Matt Haig".`;
+  
+    return `You are helping with Secret Santa shopping. Suggest 6 specific gifts under $30 for ${recipientName} (${age} years old).
+  
+  Their interests: ${demographics.interests.join(', ')}
+  Gift preferences: ${demographics.giftPreferences}
+  
+  Use this exact format, one per line:
+  - Gift name - Brief reason they'll like it`;
   };
 
   // Modified spin handler to use appData.matches
@@ -581,32 +573,49 @@ const renderJoinGame = () => (
           </div>
           
           {isLoadingSuggestions ? (
-            <div>Loading gift suggestions...</div>
-          ) : giftSuggestions ? (
-            <div style={{ 
-              textAlign: 'left',
-              backgroundColor: '#f5f5f5',
-              padding: '20px',
-              borderRadius: '8px',
-              marginTop: '20px'
-            }}>
-              <h3>Gift Suggestions:</h3>
-              <ol style={{ 
-                paddingLeft: '20px',
-                margin: '0'
-              }}>
-                {giftSuggestions.map((suggestion, index) => (
-                  <li key={index} style={{ 
-                    marginBottom: '12px',
-                    paddingLeft: '10px',
-                    lineHeight: '1.4'
-                  }}>
-                    {suggestion}
-                  </li>
-                ))}
-              </ol>
-            </div>
-          ) : null}
+  <div>Loading gift suggestions...</div>
+) : giftSuggestions ? (
+  <div style={{ 
+    textAlign: 'left',
+    backgroundColor: '#f5f5f5',
+    padding: '20px',
+    borderRadius: '8px',
+    marginTop: '20px'
+  }}>
+    <h3>Gift Suggestions:</h3>
+    <ol style={{ 
+      paddingLeft: '20px',
+      margin: '0'
+    }}>
+      {giftSuggestions.map((suggestion, index) => (
+        <li key={index} style={{ 
+          marginBottom: '12px',
+          paddingLeft: '10px',
+          lineHeight: '1.4'
+        }}>
+          {suggestion}
+        </li>
+      ))}
+    </ol>
+    <button 
+      onClick={() => window.open('https://www.amazon.com', '_blank')}
+      style={{
+        display: 'block',
+        backgroundColor: '#4CAF50',
+        color: 'white',
+        border: 'none',
+        borderRadius: '4px',
+        padding: '12px 24px',
+        marginTop: '20px',
+        cursor: 'pointer',
+        width: '100%',
+        fontSize: '16px'
+      }}
+    >
+      Find these gifts on Amazon! 🎁
+    </button>
+  </div>
+) : null}
         </div>
       )}
     </div>

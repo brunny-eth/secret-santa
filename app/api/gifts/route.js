@@ -26,19 +26,25 @@ export async function POST(request) {
     const suggestions = text.split('\n')
       .filter(line => {
         const trimmed = line.trim();
-        // Match either bullet points or numbered items (e.g., "1.", "2.", etc)
-        return trimmed && (trimmed.startsWith('•') || /^\d+\./.test(trimmed));
+        // Match bullet points, hyphens, or numbered items
+        return trimmed && (
+          trimmed.startsWith('•') || 
+          trimmed.startsWith('-') || 
+          /^\d+\./.test(trimmed) ||
+          trimmed.startsWith('*')
+        );
       })
       .map(line => {
         const trimmed = line.trim();
-        // Remove bullet point or number prefix
-        return trimmed.replace(/^(?:\d+\.|•)\s*/, '').trim();
+        // Remove any kind of list marker
+        return trimmed.replace(/^(?:\d+\.|[-•*]|\s)+/, '').trim();
       });
 
     console.log('Processed suggestions:', suggestions);
 
     // Verify we have suggestions before sending
     if (!suggestions || suggestions.length === 0) {
+      console.error('No suggestions found in text:', text);
       return Response.json({ error: 'No suggestions generated' }, { status: 500 });
     }
 
