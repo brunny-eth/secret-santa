@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import Script from 'next/script';
 import SetupPage from './setuppage.jsx';
 import ReviewParticipants from './ReviewParticipants.jsx';
+import ShareGameLink from './ShareGameLink';
 
 const COLORS = [
   '#987284', // Mountbatten Pink
@@ -15,9 +16,8 @@ const COLORS = [
   '#32CD32'  // lime green
 ];
 
-export default function SecretSantaApp() {
-  // All state declarations consolidated at the top
-  const [gameCode, setGameCode] = useState('');
+export default function SecretSantaApp({ initialGameCode }) {
+  const [gameCode, setGameCode] = useState(initialGameCode || '');
   const [isJoining, setIsJoining] = useState(false);
   const [isSetup, setIsSetup] = useState(false);
   const [appData, setAppData] = useState({
@@ -368,6 +368,11 @@ const renderJoinGame = () => (
             {gameCode}
           </p>
           <p>Share this code with other participants so they can join the game.</p>
+          <ShareGameLink 
+          gameCode={gameCode}
+          participants={appData.users}
+        />
+        
         </div>
         <button
           onClick={handleContinueToLogin}

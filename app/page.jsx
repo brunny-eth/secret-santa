@@ -1,8 +1,12 @@
 'use client';
 
+import { useSearchParams } from 'next/navigation';
 import React from 'react';
 import SecretSantaApp from './SecretSantaApp';
 
 export default function Page() {
-  return <SecretSantaApp />;
+  const searchParams = useSearchParams();
+  const initialGameCode = searchParams.get('code');
+  
+  return <SecretSantaApp initialGameCode={initialGameCode} />;
 }
