@@ -146,12 +146,12 @@ export default function SecretSantaApp() {
           if (wheelContainerRef.current && !wheelRef.current) {
             const props = {
               items: Object.keys(appData.users).map((name, index) => ({
-                label: name,
+                label: name.padEnd(name.length + 2, ' '), 
                 weight: 1,
                 backgroundColor: COLORS[index % COLORS.length]
               })),
               itemLabelRadiusMax: 0.7,
-              itemLabelFontSize: '32px',
+              itemLabelFontSize: '64px',
               rotationResistance: -50,
               itemLabelAlign: 'center',
               itemLabelColors: ['#000000'],
