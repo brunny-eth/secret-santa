@@ -40,17 +40,11 @@ export default function SecretSantaApp({ initialGameCode }) {
   const wheelRef = useRef(null);
 
   const [showReview, setShowReview] = useState(false);
-  const [editingParticipantIndex, setEditingParticipantIndex] = useState(null); 
 
   // Handle setup completion
   const handleSetupComplete = (setupData) => {
     setAppData(setupData);
     setShowReview(true);
-  };
-
-  const handleEditParticipant = (index) => {
-    setEditingParticipantIndex(index);
-    setShowReview(false);
   };
   
   const handleConfirmParticipants = async () => {
@@ -310,8 +304,8 @@ const renderJoinGame = () => (
         birthYear,
         interests: appData.userDemographics[name].interests.join(', ')
       }))}
-      onEdit={handleEditParticipant}
       onConfirm={handleConfirmParticipants}
+      setShowReview={setShowReview}
     />;
   }
 

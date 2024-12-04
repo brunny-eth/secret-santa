@@ -1,5 +1,4 @@
-// ReviewParticipants.jsx
-const ReviewParticipants = ({ participants, onEdit, onConfirm }) => {
+const ReviewParticipants = ({ participants, onConfirm, setShowReview }) => {
   return (
     <div style={{ 
       display: 'flex', 
@@ -23,22 +22,7 @@ const ReviewParticipants = ({ participants, onEdit, onConfirm }) => {
               backgroundColor: '#f8f8f8'
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ margin: '0' }}>{participant.name}</h3>
-              <button
-                onClick={() => onEdit(index)}
-                style={{
-                  padding: '5px 10px',
-                  backgroundColor: '#2196F3',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer'
-                }}
-              >
-                Edit
-              </button>
-            </div>
+            <h3 style={{ margin: '0' }}>{participant.name}</h3>
             <div style={{ marginTop: '10px' }}>
               <p><strong>Birth Year:</strong> {participant.birthYear}</p>
               <p><strong>Interests:</strong> {participant.interests}</p>
@@ -47,20 +31,36 @@ const ReviewParticipants = ({ participants, onEdit, onConfirm }) => {
         ))}
       </div>
       
-      <button
-        onClick={onConfirm}
-        style={{
-          marginTop: '20px',
-          padding: '10px 20px',
-          backgroundColor: '#4CAF50',
-          color: 'white',
-          border: 'none',
-          borderRadius: '4px',
-          cursor: 'pointer'
-        }}
-      >
-        Confirm & Generate Game Code
-      </button>
+      <div style={{ display: 'flex', gap: '10px' }}>
+        <button
+          onClick={() => setShowReview(false)}
+          style={{
+            marginTop: '20px',
+            padding: '10px 20px',
+            backgroundColor: '#808080',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+        >
+          Back to Setup
+        </button>
+        <button
+          onClick={onConfirm}
+          style={{
+            marginTop: '20px',
+            padding: '10px 20px',
+            backgroundColor: '#4CAF50',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+        >
+          Confirm & Generate Game Code
+        </button>
+      </div>
     </div>
   );
 };
