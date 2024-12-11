@@ -5,14 +5,16 @@ const ShareGameLink = ({ gameCode, participants }) => {
   const [showCopied, setShowCopied] = useState(false);
   
   const getShareUrl = () => {
-    // This will automatically use the correct URL in production
-    const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-    return `${baseUrl}?code=${gameCode}`;
+    if (typeof window !== 'undefined') {
+      const baseUrl = window.location.origin;
+      return `${baseUrl}/?code=${gameCode}`;
+    }
+    return `https://secret-santa-game.com/?code=${gameCode}`;
   };
   
   const getShareMessage = () => {
     const names = Object.keys(participants).join(', ');
-    return `Ready to play Secret Santa with ${names}? Log in at ${getShareUrl()} to see your match and get gift ideas! 🎄🎁`;
+    return `Ready to play Secret Santa with ${names}? Join our game at ${getShareUrl()} to see your match and get gift ideas! 🎄🎁`;
   };
   
   const handleCopy = async () => {

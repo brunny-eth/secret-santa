@@ -70,7 +70,6 @@ export default function SecretSantaApp({ initialGameCode }) {
     }
   };
 
-  // Handle joining existing game
   const handleJoinGame = async (enteredCode) => {
     try {
       const response = await fetch('/api/game', {
@@ -89,8 +88,12 @@ export default function SecretSantaApp({ initialGameCode }) {
       setAppData(data);
       setIsSetup(true);
       setIsJoining(false);
+      setShowGameCode(false);  
     } catch (error) {
+      console.error('Failed to join game:', error);  
       alert('Failed to join game: ' + error.message);
+      setGameCode('');
+      setIsJoining(true);
     }
   };
 
@@ -133,6 +136,58 @@ export default function SecretSantaApp({ initialGameCode }) {
   };
   
   useEffect(() => {
+    const handleUrlGameCode = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const codeFromUrl = urlParams.get('code');
+      
+      console.log('URL Check:', {
+        fullUrl: window.location.href,
+        search: window.location.search,
+        codeFromUrl,
+        isSetup,
+        showGameCode
+      });
+
+      if (codeFromUrl) {
+        try {
+          console.log('Attempting to load game with code:', codeFromUrl);
+          const response = await fetch('/api/game', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'load',
+              gameCode: codeFromUrl
+            })
+          });
+          
+          const data = await response.json();
+          console.log('API Response:', data);
+
+          if (!response.ok) throw new Error(data.error);
+          
+          setGameCode(codeFromUrl);
+          setAppData(data);
+          setIsSetup(true);
+          setShowGameCode(false); 
+          setIsJoining(false);
+
+          console.log('States after setting:', {
+            gameCode: codeFromUrl,
+            isSetup: true,
+            showGameCode: false,
+            isJoining: false
+          });
+        } catch (error) {
+          console.error('Failed to load game from URL:', error);
+          alert('Invalid or expired game code. Please try again.');
+        }
+      }
+    };
+
+    handleUrlGameCode();
+  }, []);
+
+  useEffect(() => {
     if (typeof window !== 'undefined' && isAuthenticated) {
       const loadWheel = async () => {
         try {
@@ -163,7 +218,6 @@ export default function SecretSantaApp({ initialGameCode }) {
     }
   }, [isAuthenticated, appData.users]);
 
-
   
   // Modified login handler to use appData.users
   const handleLogin = (e) => {
@@ -192,14 +246,14 @@ export default function SecretSantaApp({ initialGameCode }) {
     wheelRef.current = null;
   };
 
-  const [showGameCode, setShowGameCode] = useState(true);
+  const [showGameCode, setShowGameCode] = useState(false);
 
 
   const generateGiftPrompt = (recipientName) => {
     const demographics = appData.userDemographics[recipientName];
     const age = new Date().getFullYear() - demographics.birthYear;
   
-    return `You are helping with Secret Santa shopping. Suggest 6 specific gifts under $30 for ${recipientName} (${age} years old).
+    return `You are helping with Secret Santa shopping. Suggest 6 specific gifts under $30 for ${recipientName} (${age} years old). Make sure the suggestions are definitely under $30.
   
   Their interests: ${demographics.interests.join(', ')}
   
